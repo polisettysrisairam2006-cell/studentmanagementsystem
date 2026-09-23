@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal Student Management System | College Portal</title>
+  <meta name="description" content="Comprehensive web-based Student Management System for tracking academic records, attendance, CGPA, and PDF reports.">
+  
+  <!-- FontAwesome Icons & Chart.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+  <div id="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand-header">
+        <div class="brand-logo">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <div class="brand-title">UNIVERSAL</div>
+          <div class="brand-subtitle">SMS PORTAL</div>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a class="nav-item active" data-tab="dashboard-tab" id="nav-dashboard">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-item" data-tab="students-tab" id="nav-students">
+          <i class="fa-solid fa-user-graduate"></i>
+          <span>Students</span>
+        </a>
+        <a class="nav-item" data-tab="academics-tab" id="nav-academics">
+          <i class="fa-solid fa-book-open-reader"></i>
+          <span>Academics & Marks</span>
+        </a>
+        <a class="nav-item" data-tab="attendance-tab" id="nav-attendance">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span>Attendance Log</span>
+        </a>
+        <a class="nav-item" data-tab="departments-tab" id="nav-departments">
+          <i class="fa-solid fa-building-columns"></i>
+          <span>Departments</span>
+        </a>
+        <a class="nav-item" data-tab="reports-tab" id="nav-reports">
+          <i class="fa-solid fa-file-pdf"></i>
+          <span>PDF Reports</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-badge" id="user-badge-container">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div class="user-info">
+            <div class="user-name" id="user-display-name">Guest Admin</div>
+            <div class="user-role" id="user-display-role">System Admin</div>
+          </div>
+          <button class="btn btn-sm btn-secondary" id="btn-logout" title="Logout" style="padding: 0.35rem 0.6rem;">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-title">
+          <h2 id="page-title">Dashboard Overview</h2>
+        </div>
+
+        <div class="header-actions">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="global-search-input" placeholder="Search student by name or roll no...">
+          </div>
+          <button class="btn btn-primary" id="top-add-student-btn">
+            <i class="fa-solid fa-plus"></i> Add Student
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Body Area -->
+      <main class="content-body">
+
+        <!-- 1. DASHBOARD TAB -->
+        <section id="dashboard-tab" class="tab-content active">
+          
+          <!-- Key Metric Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Total Registered Students</div>
+                <div class="stat-val" id="dash-total-students">0</div>
+              </div>
+              <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">College Average CGPA</div>
+                <div class="stat-val" id="dash-avg-cgpa">0.00</div>
+              </div>
+              <div class="stat-icon teal"><i class="fa-solid fa-award"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">College Attendance Rate</div>
+                <div class="stat-val" id="dash-att-rate">0.0%</div>
+              </div>
+              <div class="stat-icon amber"><i class="fa-solid fa-clipboard-user"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Active Departments</div>
+                <div class="stat-val" id="dash-total-depts">0</div>
+              </div>
+              <div class="stat-icon rose"><i class="fa-solid fa-sitemap"></i></div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="dashboard-grid">
+            <div class="card-panel">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-chart-pie" style="color:var(--primary)"></i> Students by Department</div>
+              </div>
+              <div class="chart-container">
+                <canvas id="deptChart"></canvas>
+              </div>
+            </div>
+
+            <div class="card-panel">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-chart-column" style="color:var(--teal-accent)"></i> Student Distribution by Academic Year</div>
+              </div>
+              <div class="chart-container">
+                <canvas id="yearChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Performance & Alerts Row -->
+          <div class="dashboard-grid">
+            <div class="card-panel">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-trophy" style="color:var(--amber-accent)"></i> Top Performing Students (Highest CGPA)</div>
+              </div>
+              <div class="table-responsive">
+                <table class="custom-table" id="top-performers-table">
+                  <thead>
+                    <tr>
+                      <th>Roll No</th>
+                      <th>Student Name</th>
+                      <th>Dept</th>
+                      <th>CGPA</th>
+                      <th>Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Injected dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card-panel">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--rose-accent)"></i> Low Attendance Warnings (&lt; 75%)</div>
+              </div>
+              <div class="table-responsive">
+                <table class="custom-table" id="low-attendance-table">
+                  <thead>
+                    <tr>
+                      <th>Roll No</th>
+                      <th>Student Name</th>
+                      <th>Dept</th>
+                      <th>Attendance %</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Injected dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- 2. STUDENTS TAB -->
+        <section id="students-tab" class="tab-content">
+          <div class="filter-bar">
+            <select class="form-select" id="filter-student-dept">
+              <option value="">All Departments</option>
+            </select>
+
+            <select class="form-select" id="filter-student-year">
+              <option value="">All Academic Years</option>
+              <option value="1">Year 1</option>
+              <option value="2">Year 2</option>
+              <option value="3">Year 3</option>
+              <option value="4">Year 4</option>
+            </select>
+
+            <select class="form-select" id="filter-student-section">
+              <option value="">All Sections</option>
+              <option value="A">Section A</option>
+              <option value="B">Section B</option>
+              <option value="C">Section C</option>
+            </select>
+
+            <button class="btn btn-secondary" id="reset-student-filters-btn">
+              <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+          </div>
+
+          <div class="card-panel">
+            <div class="panel-header">
+              <div class="panel-title"><i class="fa-solid fa-user-graduate"></i> Registered Student Records</div>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table" id="students-data-table">
+                <thead>
+                  <tr>
+                    <th>Roll Number</th>
+                    <th>Name</th>
+                    <th>Dept</th>
+                    <th>Course & Year</th>
+                    <th>Email</th>
+                    <th>Gender</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. ACADEMICS & MARKS TAB -->
+        <section id="academics-tab" class="tab-content">
+          <div class="filter-bar">
+            <select class="form-select" id="academic-student-select" style="min-width: 250px;">
+              <option value="">Select Student to View Marks...</option>
+            </select>
+            <button class="btn btn-primary" id="open-add-mark-modal-btn">
+              <i class="fa-solid fa-plus"></i> Record Subject Marks
+            </button>
+          </div>
+
+          <div class="card-panel" id="transcript-container" style="display:none;">
+            <div class="panel-header">
+              <div class="panel-title" id="transcript-title">Academic Marks & Semester Transcript</div>
+              <button class="btn btn-secondary btn-sm" id="download-transcript-pdf-btn">
+                <i class="fa-solid fa-file-pdf"></i> Export Transcript PDF
+              </button>
+            </div>
+
+            <!-- Student Summary Header Box -->
+            <div class="stats-grid" style="margin-bottom: 1.5rem;" id="transcript-summary-box">
+              <!-- Dynamically filled -->
+            </div>
+
+            <div class="table-responsive">
+              <table class="custom-table" id="transcript-marks-table">
+                <thead>
+                  <tr>
+                    <th>Subject Code</th>
+                    <th>Subject Name</th>
+                    <th>Semester</th>
+                    <th>Internal (40)</th>
+                    <th>External (70)</th>
+                    <th>Total (100)</th>
+                    <th>Grade</th>
+                    <th>Grade Point</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. ATTENDANCE TAB -->
+        <section id="attendance-tab" class="tab-content">
+          <div class="filter-bar">
+            <select class="form-select" id="att-student-select" style="min-width: 250px;">
+              <option value="">Select Student to View Attendance...</option>
+            </select>
+            <button class="btn btn-primary" id="open-record-attendance-modal-btn">
+              <i class="fa-solid fa-check-double"></i> Mark Class Attendance
+            </button>
+          </div>
+
+          <div class="card-panel" id="att-summary-container" style="display:none;">
+            <div class="panel-header">
+              <div class="panel-title" id="att-student-title">Subject-wise Attendance Breakdown</div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="custom-table" id="att-summary-table">
+                <thead>
+                  <tr>
+                    <th>Subject Code</th>
+                    <th>Subject Name</th>
+                    <th>Total Classes</th>
+                    <th>Classes Attended</th>
+                    <th>Attendance Percentage</th>
+                    <th>Compliance Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. DEPARTMENTS & SUBJECTS TAB -->
+        <section id="departments-tab" class="tab-content">
+          <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+            <button class="btn btn-primary" id="open-add-dept-modal-btn">
+              <i class="fa-solid fa-plus"></i> Add Department
+            </button>
+            <button class="btn btn-secondary" id="open-add-subject-modal-btn">
+              <i class="fa-solid fa-book"></i> Add Subject
+            </button>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="card-panel">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-building-columns"></i> College Departments</div>
+              </div>
+              <div class="table-responsive">
+                <table class="custom-table" id="depts-table">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Department Name</th>
+                      <th>Description</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Injected dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card-panel">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-book"></i> Academic Subjects</div>
+              </div>
+              <div class="table-responsive">
+                <table class="custom-table" id="subjects-table">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Subject Name</th>
+                      <th>Dept</th>
+                      <th>Sem</th>
+                      <th>Credits</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Injected dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. PDF REPORTS TAB -->
+        <section id="reports-tab" class="tab-content">
+          <div class="card-panel" style="max-width: 650px; margin: 0 auto;">
+            <div class="panel-header">
+              <div class="panel-title"><i class="fa-solid fa-file-pdf" style="color:var(--rose-accent)"></i> Generate Official PDF Student Transcript Report</div>
+            </div>
+            <div style="padding: 1rem 0;">
+              <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label">Select Student for Report Card Generation</label>
+                <select class="form-select" id="report-student-select">
+                  <option value="">Choose Student...</option>
+                </select>
+              </div>
+
+              <button class="btn btn-primary" id="generate-pdf-btn" style="width: 100%; justify-content: center;">
+                <i class="fa-solid fa-download"></i> Generate & Download Official PDF Report Card
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- 1. LOGIN MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal-box auth-box">
+      <div class="modal-header">
+        <div class="modal-title">Admin Login</div>
+      </div>
+      <div class="modal-body">
+        <div class="auth-header">
+          <div class="brand-logo" style="margin: 0 auto 0.5rem; width: 48px; height: 48px;">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <h3>Universal College Portal</h3>
+          <p style="color: var(--text-muted); font-size: 0.85rem;">Sign in to manage student records and marks</p>
+        </div>
+
+        <form id="login-form">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="login-email" required placeholder="admin@college.edu">
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" id="login-password" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In to Dashboard
+          </button>
+        </form>
+
+        <div class="demo-credentials-box">
+          <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;">Demo Credentials:</div>
+          Email: <code>admin@college.edu</code> | Password: <code>admin123</code>
+          <button class="btn btn-sm btn-secondary" id="fill-demo-login-btn" style="margin-top: 0.5rem; width: 100%; justify-content: center;">
+            Auto-fill Demo Admin Credentials
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. ADD / EDIT STUDENT MODAL -->
+  <div class="modal-overlay" id="student-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="student-modal-title">Add New Student</div>
+        <button class="close-btn" class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="student-form">
+          <input type="hidden" id="student-id-input">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Roll Number / Student ID *</label>
+              <input type="text" class="form-control" id="st-roll" required placeholder="e.g. 2024CSE101">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input type="text" class="form-control" id="st-name" required placeholder="e.g. Rahul Sharma">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date of Birth *</label>
+              <input type="date" class="form-control" id="st-dob" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender *</label>
+              <select class="form-select" id="st-gender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address *</label>
+              <input type="email" class="form-control" id="st-email" required placeholder="student@college.edu">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number *</label>
+              <input type="text" class="form-control" id="st-phone" required placeholder="+91 9876543210">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Department *</label>
+              <select class="form-select" id="st-department" required></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Course / Program *</label>
+              <input type="text" class="form-control" id="st-course" required value="B.Tech">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Academic Year *</label>
+              <select class="form-select" id="st-year" required>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Section *</label>
+              <input type="text" class="form-control" id="st-section" required value="A">
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">Address</label>
+              <textarea class="form-control" id="st-address" rows="2" placeholder="Hostel Block A, City Name"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding-top: 1rem; margin-top: 1rem;">
+            <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Student</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. RECORD MARKS MODAL -->
+  <div class="modal-overlay" id="mark-modal">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title">Record Academic Marks</div>
+        <button class="close-btn" class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="mark-form">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Student *</label>
+            <select class="form-select" id="mk-student" required></select>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Subject *</label>
+            <select class="form-select" id="mk-subject" required></select>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Semester *</label>
+            <select class="form-select" id="mk-semester" required>
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+              <option value="3">Semester 3</option>
+              <option value="4">Semester 4</option>
+              <option value="5">Semester 5</option>
+              <option value="6">Semester 6</option>
+              <option value="7">Semester 7</option>
+              <option value="8">Semester 8</option>
+            </select>
+          </div>
+          <div class="form-grid" style="margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Internal Marks (Max 30/40)</label>
+              <input type="number" step="0.1" max="40" min="0" class="form-control" id="mk-internal" required placeholder="25.0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">External Marks (Max 60/70)</label>
+              <input type="number" step="0.1" max="70" min="0" class="form-control" id="mk-external" required placeholder="55.0">
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 0;">
+            <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Marks</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. RECORD ATTENDANCE MODAL -->
+  <div class="modal-overlay" id="attendance-modal">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title">Mark Class Attendance</div>
+        <button class="close-btn" class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="attendance-form">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Student *</label>
+            <select class="form-select" id="att-student" required></select>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Subject *</label>
+            <select class="form-select" id="att-subject" required></select>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Date *</label>
+            <input type="date" class="form-control" id="att-date" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Status *</label>
+            <select class="form-select" id="att-status" required>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+              <option value="Late">Late</option>
+            </select>
+          </div>
+          <div class="modal-footer" style="padding: 0;">
+            <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Log Attendance</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. ADD DEPARTMENT MODAL -->
+  <div class="modal-overlay" id="dept-modal">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title">Add New Department</div>
+        <button class="close-btn" class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="dept-form">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Department Code *</label>
+            <input type="text" class="form-control" id="dept-code" required placeholder="e.g. AI-DS">
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Department Name *</label>
+            <input type="text" class="form-control" id="dept-name" required placeholder="e.g. Artificial Intelligence & Data Science">
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" id="dept-desc" rows="2"></textarea>
+          </div>
+          <div class="modal-footer" style="padding: 0;">
+            <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Create Department</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. ADD SUBJECT MODAL -->
+  <div class="modal-overlay" id="subject-modal">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title">Add Academic Subject</div>
+        <button class="close-btn" class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <form id="subject-form">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Subject Code *</label>
+            <input type="text" class="form-control" id="subj-code" required placeholder="e.g. CS401">
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Subject Name *</label>
+            <input type="text" class="form-control" id="subj-name" required placeholder="e.g. Cloud Computing & DevOps">
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Department *</label>
+            <select class="form-select" id="subj-dept" required></select>
+          </div>
+          <div class="form-grid" style="margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">Semester *</label>
+              <input type="number" min="1" max="8" class="form-control" id="subj-sem" value="1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Credits *</label>
+              <input type="number" min="1" max="6" class="form-control" id="subj-credits" value="4" required>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 0;">
+            <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Create Subject</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Modular Application Logic JavaScript -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
