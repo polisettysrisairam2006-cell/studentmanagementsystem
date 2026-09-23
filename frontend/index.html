@@ -11,7 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/static/css/styles.css?v=3.0">
 </head>
 <body>
 
@@ -29,31 +29,7 @@
         </div>
       </div>
 
-      <nav class="nav-menu">
-        <a class="nav-item active" data-tab="dashboard-tab" id="nav-dashboard">
-          <i class="fa-solid fa-chart-pie"></i>
-          <span>Dashboard</span>
-        </a>
-        <a class="nav-item" data-tab="students-tab" id="nav-students">
-          <i class="fa-solid fa-user-graduate"></i>
-          <span>Students</span>
-        </a>
-        <a class="nav-item" data-tab="academics-tab" id="nav-academics">
-          <i class="fa-solid fa-book-open-reader"></i>
-          <span>Academics & Marks</span>
-        </a>
-        <a class="nav-item" data-tab="attendance-tab" id="nav-attendance">
-          <i class="fa-solid fa-calendar-check"></i>
-          <span>Attendance Log</span>
-        </a>
-        <a class="nav-item" data-tab="departments-tab" id="nav-departments">
-          <i class="fa-solid fa-building-columns"></i>
-          <span>Departments</span>
-        </a>
-        <a class="nav-item" data-tab="reports-tab" id="nav-reports">
-          <i class="fa-solid fa-file-pdf"></i>
-          <span>PDF Reports</span>
-        </a>
+      <nav class="nav-menu" id="sidebar-nav-menu">
       </nav>
 
       <div class="sidebar-footer">
@@ -93,41 +69,49 @@
       <!-- Content Body Area -->
       <main class="content-body">
 
-        <!-- 1. DASHBOARD TAB -->
-        <section id="dashboard-tab" class="tab-content active">
+        <!-- 1. ADMIN DASHBOARD TAB -->
+        <section id="admin-dashboard-tab" class="tab-content active">
           
           <!-- Key Metric Cards -->
           <div class="stats-grid">
             <div class="stat-card">
               <div>
-                <div class="stat-label">Total Registered Students</div>
-                <div class="stat-val" id="dash-total-students">0</div>
+                <div class="stat-label">Total Students</div>
+                <div class="stat-val" id="admin-dash-total-students">0</div>
               </div>
               <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
             </div>
 
             <div class="stat-card">
               <div>
-                <div class="stat-label">College Average CGPA</div>
-                <div class="stat-val" id="dash-avg-cgpa">0.00</div>
+                <div class="stat-label">Total Departments</div>
+                <div class="stat-val" id="admin-dash-total-depts">0</div>
               </div>
-              <div class="stat-icon teal"><i class="fa-solid fa-award"></i></div>
+              <div class="stat-icon rose"><i class="fa-solid fa-sitemap"></i></div>
             </div>
 
             <div class="stat-card">
               <div>
-                <div class="stat-label">College Attendance Rate</div>
-                <div class="stat-val" id="dash-att-rate">0.0%</div>
+                <div class="stat-label">Total Subjects</div>
+                <div class="stat-val" id="admin-dash-total-subjects">0</div>
+              </div>
+              <div class="stat-icon teal"><i class="fa-solid fa-book"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Overall Attendance</div>
+                <div class="stat-val" id="admin-dash-att-rate">0.0%</div>
               </div>
               <div class="stat-icon amber"><i class="fa-solid fa-clipboard-user"></i></div>
             </div>
 
             <div class="stat-card">
               <div>
-                <div class="stat-label">Active Departments</div>
-                <div class="stat-val" id="dash-total-depts">0</div>
+                <div class="stat-label">Average College CGPA</div>
+                <div class="stat-val" id="admin-dash-avg-cgpa">0.00</div>
               </div>
-              <div class="stat-icon rose"><i class="fa-solid fa-sitemap"></i></div>
+              <div class="stat-icon purple"><i class="fa-solid fa-award"></i></div>
             </div>
           </div>
 
@@ -135,19 +119,19 @@
           <div class="dashboard-grid">
             <div class="card-panel">
               <div class="panel-header">
-                <div class="panel-title"><i class="fa-solid fa-chart-pie" style="color:var(--primary)"></i> Students by Department</div>
+                <div class="panel-title"><i class="fa-solid fa-chart-pie" style="color:var(--primary)"></i> Department-wise Student Distribution</div>
               </div>
               <div class="chart-container">
-                <canvas id="deptChart"></canvas>
+                <canvas id="adminDeptChart"></canvas>
               </div>
             </div>
 
             <div class="card-panel">
               <div class="panel-header">
-                <div class="panel-title"><i class="fa-solid fa-chart-column" style="color:var(--teal-accent)"></i> Student Distribution by Academic Year</div>
+                <div class="panel-title"><i class="fa-solid fa-chart-column" style="color:var(--teal-accent)"></i> Year-wise Student Distribution</div>
               </div>
               <div class="chart-container">
-                <canvas id="yearChart"></canvas>
+                <canvas id="adminYearChart"></canvas>
               </div>
             </div>
           </div>
@@ -156,10 +140,10 @@
           <div class="dashboard-grid">
             <div class="card-panel">
               <div class="panel-header">
-                <div class="panel-title"><i class="fa-solid fa-trophy" style="color:var(--amber-accent)"></i> Top Performing Students (Highest CGPA)</div>
+                <div class="panel-title"><i class="fa-solid fa-trophy" style="color:var(--amber-accent)"></i> Top Performers</div>
               </div>
               <div class="table-responsive">
-                <table class="custom-table" id="top-performers-table">
+                <table class="custom-table" id="admin-top-performers-table">
                   <thead>
                     <tr>
                       <th>Roll No</th>
@@ -169,19 +153,17 @@
                       <th>Percentage</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <!-- Injected dynamically -->
-                  </tbody>
+                  <tbody></tbody>
                 </table>
               </div>
             </div>
 
             <div class="card-panel">
               <div class="panel-header">
-                <div class="panel-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--rose-accent)"></i> Low Attendance Warnings (&lt; 75%)</div>
+                <div class="panel-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--rose-accent)"></i> Low Attendance Alerts (&lt; 75%)</div>
               </div>
               <div class="table-responsive">
-                <table class="custom-table" id="low-attendance-table">
+                <table class="custom-table" id="admin-low-attendance-table">
                   <thead>
                     <tr>
                       <th>Roll No</th>
@@ -191,11 +173,113 @@
                       <th>Action</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <!-- Injected dynamically -->
-                  </tbody>
+                  <tbody></tbody>
                 </table>
               </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- 2. FACULTY DASHBOARD TAB -->
+        <section id="faculty-dashboard-tab" class="tab-content">
+          
+          <!-- Key Metric Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Accessible Students</div>
+                <div class="stat-val" id="faculty-dash-total-students">0</div>
+              </div>
+              <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Average College CGPA</div>
+                <div class="stat-val" id="faculty-dash-avg-cgpa">0.00</div>
+              </div>
+              <div class="stat-icon teal"><i class="fa-solid fa-award"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Attendance Overview</div>
+                <div class="stat-val" id="faculty-dash-att-rate">0.0%</div>
+              </div>
+              <div class="stat-icon amber"><i class="fa-solid fa-clipboard-user"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Attendance Below 75%</div>
+                <div class="stat-val" id="faculty-dash-low-att-count">0</div>
+              </div>
+              <div class="stat-icon rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            </div>
+          </div>
+
+          <!-- Performance & Low Attendance Row -->
+          <div class="dashboard-grid">
+            <div class="card-panel">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--rose-accent)"></i> Students Below 75% Attendance</div>
+              </div>
+              <div class="table-responsive">
+                <table class="custom-table" id="faculty-low-attendance-table">
+                  <thead>
+                    <tr>
+                      <th>Roll No</th>
+                      <th>Student Name</th>
+                      <th>Dept</th>
+                      <th>Attendance %</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card-panel">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-trophy" style="color:var(--amber-accent)"></i> Academic Performance Summary</div>
+              </div>
+              <div class="table-responsive">
+                <table class="custom-table" id="faculty-top-performers-table">
+                  <thead>
+                    <tr>
+                      <th>Roll No</th>
+                      <th>Student Name</th>
+                      <th>Dept</th>
+                      <th>CGPA</th>
+                      <th>Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subject Academic Info Row -->
+          <div class="card-panel" style="margin-top: 1.5rem;">
+            <div class="panel-header">
+              <div class="panel-title"><i class="fa-solid fa-book-open" style="color:var(--primary)"></i> Subject-Related Academic Information</div>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table" id="faculty-subjects-summary-table">
+                <thead>
+                  <tr>
+                    <th>Subject Code</th>
+                    <th>Subject Name</th>
+                    <th>Department</th>
+                    <th>Semester</th>
+                    <th>Credits</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
             </div>
           </div>
 
@@ -285,7 +369,7 @@
                     <th>Subject Code</th>
                     <th>Subject Name</th>
                     <th>Semester</th>
-                    <th>Internal (40)</th>
+                    <th>Internal (30)</th>
                     <th>External (70)</th>
                     <th>Total (100)</th>
                     <th>Grade</th>
@@ -414,6 +498,140 @@
           </div>
         </section>
 
+        <!-- 3. STUDENT DASHBOARD TAB -->
+        <section id="student-dashboard-tab" class="tab-content">
+          <!-- Low Attendance Warning Alert (if < 75%) -->
+          <div id="sp-low-attendance-alert" class="card-panel" style="display: none; background: rgba(244, 63, 94, 0.12); border: 1px solid var(--rose-accent); margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; color: #fda4af;">
+              <i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem; color: var(--rose-accent);"></i>
+              <div>
+                <h4 style="margin: 0; color: #fff;">Attendance Shortage Alert (&lt; 75%)</h4>
+                <p style="margin: 0.25rem 0 0; font-size: 0.9rem;">Your overall attendance is below the required 75% threshold. Please meet your academic coordinator.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Student Profile Banner Box -->
+          <div class="card-panel" id="sp-profile-card" style="margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div style="display: flex; align-items: center; gap: 1.25rem;">
+                <div class="user-avatar" id="sp-avatar" style="width: 52px; height: 52px; font-size: 1.4rem;">S</div>
+                <div>
+                  <div style="font-size:0.8rem; color:var(--teal-accent); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Welcome back</div>
+                  <h3 id="sp-student-name" style="margin: 0; font-size: 1.25rem; font-weight: 700;">Student Name</h3>
+                  <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;" id="sp-student-subtext">Roll No: -- | Dept: -- | Year: --</div>
+                </div>
+              </div>
+              <button class="btn btn-secondary" id="sp-download-pdf-btn">
+                <i class="fa-solid fa-file-pdf" style="color: var(--rose-accent);"></i> Download My Transcript PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Student Performance Stat Cards -->
+          <div class="stats-grid" style="margin-bottom: 1.5rem;">
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Cumulative GPA (CGPA)</div>
+                <div class="stat-val" id="sp-cgpa">0.00 / 10.0</div>
+              </div>
+              <div class="stat-icon teal"><i class="fa-solid fa-award"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Overall Percentage</div>
+                <div class="stat-val" id="sp-percentage">0.0%</div>
+              </div>
+              <div class="stat-icon purple"><i class="fa-solid fa-chart-line"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Attendance Rate</div>
+                <div class="stat-val" id="sp-att-rate">0.0%</div>
+              </div>
+              <div class="stat-icon amber"><i class="fa-solid fa-clipboard-user"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div>
+                <div class="stat-label">Academic Status</div>
+                <div class="stat-val" id="sp-status">--</div>
+              </div>
+              <div class="stat-icon rose"><i class="fa-solid fa-graduation-cap"></i></div>
+            </div>
+          </div>
+
+          <!-- Student Performance Analytics Charts -->
+          <div class="dashboard-grid" style="margin-bottom: 1.5rem;">
+            <div class="card-panel">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-chart-line" style="color:var(--primary)"></i> Semester GPA Performance Trend</div>
+              </div>
+              <div class="chart-container">
+                <canvas id="spGpaChart"></canvas>
+              </div>
+            </div>
+
+            <div class="card-panel">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-chart-column" style="color:var(--teal-accent)"></i> Subject-wise Attendance (%)</div>
+              </div>
+              <div class="chart-container">
+                <canvas id="spAttendanceChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Student Academic & Attendance Tables -->
+          <div class="dashboard-grid">
+            <div class="card-panel" id="sp-marks-card">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-book-open" style="color:var(--primary)"></i> My Recorded Subject Marks</div>
+              </div>
+              <div class="table-responsive">
+                <table class="custom-table" id="sp-marks-table">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Subject Name</th>
+                      <th>Sem</th>
+                      <th>Internal (30)</th>
+                      <th>External (70)</th>
+                      <th>Total (100)</th>
+                      <th>Grade</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card-panel" id="sp-attendance-card">
+              <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-calendar-check" style="color:var(--teal-accent)"></i> My Attendance Records</div>
+              </div>
+              <div class="table-responsive">
+                <table class="custom-table" id="sp-attendance-table">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Subject Name</th>
+                      <th>Conducted</th>
+                      <th>Attended</th>
+                      <th>Attendance %</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
       </main>
 
     </div>
@@ -422,11 +640,11 @@
 
   <!-- MODALS -->
 
-  <!-- 1. LOGIN MODAL -->
+  <!-- 1. AUTH MODAL (LOGIN & REGISTER) -->
   <div class="modal-overlay" id="auth-modal">
     <div class="modal-box auth-box">
       <div class="modal-header">
-        <div class="modal-title">Admin Login</div>
+        <div class="modal-title" id="auth-modal-title">Portal Authentication</div>
       </div>
       <div class="modal-body">
         <div class="auth-header">
@@ -434,10 +652,21 @@
             <i class="fa-solid fa-graduation-cap"></i>
           </div>
           <h3>Universal College Portal</h3>
-          <p style="color: var(--text-muted); font-size: 0.85rem;">Sign in to manage student records and marks</p>
+          <p style="color: var(--text-muted); font-size: 0.85rem;">Manage college records, students & academic transcripts</p>
         </div>
 
-        <form id="login-form">
+        <!-- Auth Mode Switcher -->
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab-btn active" id="tab-login-btn">
+            <i class="fa-solid fa-right-to-bracket"></i> Sign In
+          </button>
+          <button type="button" class="auth-tab-btn" id="tab-register-btn">
+            <i class="fa-solid fa-user-plus"></i> Register
+          </button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="login-form" class="auth-form-view">
           <div class="form-group" style="margin-bottom: 1rem;">
             <label class="form-label">Email Address</label>
             <input type="email" class="form-control" id="login-email" required placeholder="admin@college.edu">
@@ -449,15 +678,50 @@
           <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
             <i class="fa-solid fa-right-to-bracket"></i> Sign In to Dashboard
           </button>
+
+          <div class="demo-credentials-box">
+            <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem;">Quick Demo Credentials:</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-sm btn-secondary" id="fill-demo-login-btn" style="flex: 1;">
+                Admin
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary" id="fill-demo-faculty-btn" style="flex: 1;">
+                Faculty
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary" id="fill-demo-student-btn" style="flex: 1;">
+                Student
+              </button>
+            </div>
+          </div>
         </form>
 
-        <div class="demo-credentials-box">
-          <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;">Demo Credentials:</div>
-          Email: <code>admin@college.edu</code> | Password: <code>admin123</code>
-          <button class="btn btn-sm btn-secondary" id="fill-demo-login-btn" style="margin-top: 0.5rem; width: 100%; justify-content: center;">
-            Auto-fill Demo Admin Credentials
+        <!-- REGISTER FORM -->
+        <form id="register-form" class="auth-form-view" style="display: none;">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-control" id="reg-name" required placeholder="e.g. Dr. Sarah Connor">
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Email Address *</label>
+            <input type="email" class="form-control" id="reg-email" required placeholder="user.new@college.edu">
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Password *</label>
+            <input type="password" class="form-control" id="reg-password" required minlength="6" placeholder="At least 6 characters">
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">Role *</label>
+            <select class="form-select" id="reg-role" required>
+              <option value="admin">System Administrator</option>
+              <option value="faculty">Academic Faculty</option>
+              <option value="student">Student Account</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+            <i class="fa-solid fa-user-plus"></i> Register Account
           </button>
-        </div>
+        </form>
+
       </div>
     </div>
   </div>
@@ -568,11 +832,11 @@
           </div>
           <div class="form-grid" style="margin-bottom: 1rem;">
             <div class="form-group">
-              <label class="form-label">Internal Marks (Max 30/40)</label>
-              <input type="number" step="0.1" max="40" min="0" class="form-control" id="mk-internal" required placeholder="25.0">
+              <label class="form-label">Internal Marks (Max 30)</label>
+              <input type="number" step="0.1" max="30" min="0" class="form-control" id="mk-internal" required placeholder="25.0">
             </div>
             <div class="form-group">
-              <label class="form-label">External Marks (Max 60/70)</label>
+              <label class="form-label">External Marks (Max 70)</label>
               <input type="number" step="0.1" max="70" min="0" class="form-control" id="mk-external" required placeholder="55.0">
             </div>
           </div>

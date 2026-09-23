@@ -18,7 +18,7 @@ def test_list_students(auth_header):
 
 def test_create_student_duplicate_roll_validation(auth_header):
     # Retrieve existing department
-    dept_res = client.get("/api/v1/departments")
+    dept_res = client.get("/api/v1/departments", headers=auth_header)
     dept_id = dept_res.json()[0]["id"]
 
     new_student = {
@@ -39,7 +39,7 @@ def test_create_student_duplicate_roll_validation(auth_header):
     assert "already exists" in res.json()["detail"]
 
 def test_create_student_success(auth_header):
-    dept_res = client.get("/api/v1/departments")
+    dept_res = client.get("/api/v1/departments", headers=auth_header)
     dept_id = dept_res.json()[0]["id"]
 
     student_data = {
@@ -61,3 +61,39 @@ def test_create_student_success(auth_header):
     data = res.json()
     assert data["roll_number"] == "TEST_ROLL_999"
     assert data["name"] == "Jane Doe"
+
+def test_create_student_duplicate_phone_validation(auth_header):
+    dept_res = client.get("/api/v1/departments", headers=auth_header)
+    dept_id = dept_res.json()[0]["id"]
+
+    new_student = {
+        "roll_number": "UNIQUE_ROLL_888",
+        "name": "Test Student Duplicate Phone",
+        "dob": "2003-01-01",
+        "gender": "Male",
+        "email": "unique.phone.test@college.edu",
+        "phone": "+91 9876543210", # Existing phone from seed
+        "department_id": dept_id,
+        "course": "B.Tech",
+        "year": 1,
+        "section": "A"
+    }
+
+    res = client.post("/api/v1/students", json=new_student, headers=auth_header)
+    assert res.status_code == 400
+    assert "Phone Number" in res.json()["detail"] or "already exists" in res.json()["detail"]
+
+def test_update_student_success(auth_header):
+    st_res = client.get("/api/v1/students", headers=auth_header)
+    student_id = st_res.json()[0]["id"]
+
+    update_payload = {
+        "name": "Aarav Sharma Updated",
+        "phone": "+91 9111122223"
+    }
+
+    res = client.put(f"/api/v1/students/{student_id}", json=update_payload, headers=auth_header)
+    assert res.status_code == 200
+    updated_data = res.json()
+    assert updated_data["name"] == "Aarav Sharma Updated"
+    assert updated_data["phone"] == "+91 9111122223"

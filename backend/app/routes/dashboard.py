@@ -11,10 +11,15 @@ from backend.app.models.attendance import Attendance
 from backend.app.schemas.dashboard import DashboardStatsOut
 from backend.app.services.academic_service import compute_student_academic_summary
 
+from backend.app.routes.auth import require_faculty_or_admin
+
 router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard & Analytics"])
 
 @router.get("/stats", response_model=DashboardStatsOut)
-def get_dashboard_statistics(db: Session = Depends(get_db)):
+def get_dashboard_statistics(
+    db: Session = Depends(get_db),
+    current_user = Depends(require_faculty_or_admin)
+):
     """Retrieve aggregate statistics, distribution metrics, top performers, and low-attendance warnings."""
     total_students = db.query(Student).count()
     total_departments = db.query(Department).count()

@@ -12,4 +12,7 @@ class Settings:
     # Attendance
     MIN_ATTENDANCE_PERCENTAGE: float = float(os.getenv("MIN_ATTENDANCE_PERCENTAGE", "75.0"))
 
+    # CORS
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost,http://127.0.0.1,http://localhost:8000,http://127.0.0.1:8000,http://localhost:8050,http://127.0.0.1:8050")
+
 settings = Settings()

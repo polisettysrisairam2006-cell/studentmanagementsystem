@@ -11,10 +11,10 @@ def auth_header():
     return {"Authorization": f"Bearer {token}"}
 
 def test_record_attendance(auth_header):
-    st_res = client.get("/api/v1/students")
+    st_res = client.get("/api/v1/students", headers=auth_header)
     student_id = st_res.json()[0]["id"]
     
-    subj_res = client.get("/api/v1/subjects")
+    subj_res = client.get("/api/v1/subjects", headers=auth_header)
     subject_id = subj_res.json()[0]["id"]
 
     att_payload = {
@@ -30,7 +30,7 @@ def test_record_attendance(auth_header):
     assert res.json()["status"] == "Present"
 
 def test_student_attendance_summary(auth_header):
-    st_res = client.get("/api/v1/students")
+    st_res = client.get("/api/v1/students", headers=auth_header)
     student_id = st_res.json()[0]["id"]
 
     res = client.get(f"/api/v1/attendance/students/{student_id}", headers=auth_header)

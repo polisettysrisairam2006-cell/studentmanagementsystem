@@ -118,9 +118,9 @@ def generate_student_pdf_report(student, academic_summary, attendance_stats) -> 
         Paragraph("<b>Code</b>", cell_bold),
         Paragraph("<b>Subject Name</b>", cell_bold),
         Paragraph("<b>Sem</b>", cell_bold),
-        Paragraph("<b>Internal</b>", cell_bold),
-        Paragraph("<b>External</b>", cell_bold),
-        Paragraph("<b>Total</b>", cell_bold),
+        Paragraph("<b>Internal (30)</b>", cell_bold),
+        Paragraph("<b>External (70)</b>", cell_bold),
+        Paragraph("<b>Total (100)</b>", cell_bold),
         Paragraph("<b>Grade</b>", cell_bold),
         Paragraph("<b>GP</b>", cell_bold)
     ]

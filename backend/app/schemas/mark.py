@@ -7,14 +7,14 @@ class MarkBase(BaseModel):
     student_id: int
     subject_id: int
     semester: int = Field(..., ge=1, le=8)
-    internal_marks: float = Field(..., ge=0.0, le=40.0)
+    internal_marks: float = Field(..., ge=0.0, le=30.0)
     external_marks: float = Field(..., ge=0.0, le=70.0)
 
 class MarkCreate(MarkBase):
     pass
 
 class MarkUpdate(BaseModel):
-    internal_marks: Optional[float] = Field(None, ge=0.0, le=40.0)
+    internal_marks: Optional[float] = Field(None, ge=0.0, le=30.0)
     external_marks: Optional[float] = Field(None, ge=0.0, le=70.0)
 
 class MarkOut(BaseModel):

@@ -7,7 +7,7 @@ from backend.app.models.student import Student
 from backend.app.models.subject import Subject
 from backend.app.schemas.mark import MarkCreate, MarkUpdate, MarkOut
 from backend.app.services.academic_service import calculate_grade_and_gp, compute_student_academic_summary
-from backend.app.routes.auth import get_current_user
+from backend.app.routes.auth import get_current_user, require_faculty_or_admin, check_student_access_permission
 
 router = APIRouter(prefix="/api/v1/marks", tags=["Academics & Marks"])
 
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/v1/marks", tags=["Academics & Marks"])
 def record_student_mark(
     mark_in: MarkCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_faculty_or_admin)
 ):
     """Record or update subject marks for a student, auto-computing percentage, grade, and grade points."""
     student = db.query(Student).filter(Student.id == mark_in.student_id).first()
@@ -65,16 +65,28 @@ def record_student_mark(
     return mark
 
 @router.get("/students/{student_id}", response_model=List[MarkOut])
-def get_student_marks(student_id: int, db: Session = Depends(get_db)):
+def get_student_marks(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     """Retrieve all subject marks recorded for a student."""
+    check_student_access_permission(student_id, current_user, db)
+    
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     return db.query(Mark).filter(Mark.student_id == student_id).order_by(Mark.semester.asc()).all()
 
 @router.get("/students/{student_id}/summary")
-def get_student_transcript_summary(student_id: int, db: Session = Depends(get_db)):
+def get_student_transcript_summary(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     """Get academic summary (GPA/CGPA, total marks, percentage, status) for a student."""
+    check_student_access_permission(student_id, current_user, db)
+    
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")

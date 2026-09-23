@@ -4,12 +4,15 @@ from typing import List
 from backend.app.core.database import get_db
 from backend.app.models.department import Department
 from backend.app.schemas.department import DepartmentCreate, DepartmentUpdate, DepartmentOut
-from backend.app.routes.auth import get_current_user
+from backend.app.routes.auth import get_current_user, require_admin
 
 router = APIRouter(prefix="/api/v1/departments", tags=["Departments"])
 
 @router.get("", response_model=List[DepartmentOut])
-def list_departments(db: Session = Depends(get_db)):
+def list_departments(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     """Retrieve all college departments."""
     return db.query(Department).all()
 
@@ -17,9 +20,9 @@ def list_departments(db: Session = Depends(get_db)):
 def create_department(
     dept_in: DepartmentCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_admin)
 ):
-    """Create a new department."""
+    """Create a new department (Admin only)."""
     existing = db.query(Department).filter(Department.code == dept_in.code.upper()).first()
     if existing:
         raise HTTPException(
@@ -37,7 +40,11 @@ def create_department(
     return dept
 
 @router.get("/{dept_id}", response_model=DepartmentOut)
-def get_department(dept_id: int, db: Session = Depends(get_db)):
+def get_department(
+    dept_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     """Get department details by ID."""
     dept = db.query(Department).filter(Department.id == dept_id).first()
     if not dept:
@@ -49,9 +56,9 @@ def update_department(
     dept_id: int,
     dept_in: DepartmentUpdate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_admin)
 ):
-    """Update department information."""
+    """Update department information (Admin only)."""
     dept = db.query(Department).filter(Department.id == dept_id).first()
     if not dept:
         raise HTTPException(status_code=404, detail="Department not found")
@@ -71,9 +78,9 @@ def update_department(
 def delete_department(
     dept_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_admin)
 ):
-    """Delete department and associated records."""
+    """Delete department and associated records (Admin only)."""
     dept = db.query(Department).filter(Department.id == dept_id).first()
     if not dept:
         raise HTTPException(status_code=404, detail="Department not found")

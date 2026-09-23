@@ -19,7 +19,7 @@ def seed_database():
     db = SessionLocal()
 
     try:
-        print("1. Creating Admin Account...")
+        print("1. Creating Admin and Faculty Accounts...")
         admin_user = User(
             email="admin@college.edu",
             hashed_password=hash_password("admin123"),
@@ -27,7 +27,15 @@ def seed_database():
             role="admin",
             is_active=True
         )
+        faculty_user = User(
+            email="faculty@college.edu",
+            hashed_password=hash_password("faculty123"),
+            full_name="Dr. Alan Turing",
+            role="faculty",
+            is_active=True
+        )
         db.add(admin_user)
+        db.add(faculty_user)
         db.commit()
 
         print("2. Creating Departments...")
@@ -121,6 +129,17 @@ def seed_database():
                 status="Active"
             )
             db.add(st)
+
+            # Create corresponding student user account for login
+            st_user = User(
+                email=email.lower(),
+                hashed_password=hash_password("student123"),
+                full_name=name,
+                role="student",
+                is_active=True
+            )
+            db.add(st_user)
+
             db.commit()
             db.refresh(st)
             student_models.append(st)

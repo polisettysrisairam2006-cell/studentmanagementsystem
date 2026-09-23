@@ -6,7 +6,7 @@ from backend.app.models.attendance import Attendance
 from backend.app.models.student import Student
 from backend.app.models.subject import Subject
 from backend.app.schemas.attendance import AttendanceRecordCreate, AttendanceOut, StudentAttendanceSummary
-from backend.app.routes.auth import get_current_user
+from backend.app.routes.auth import get_current_user, require_faculty_or_admin, check_student_access_permission
 
 router = APIRouter(prefix="/api/v1/attendance", tags=["Attendance"])
 
@@ -14,9 +14,9 @@ router = APIRouter(prefix="/api/v1/attendance", tags=["Attendance"])
 def record_attendance(
     att_in: AttendanceRecordCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_faculty_or_admin)
 ):
-    """Record or update attendance for a student on a specific date and subject."""
+    """Record or update attendance for a student on a specific date and subject (Faculty or Admin)."""
     student = db.query(Student).filter(Student.id == att_in.student_id).first()
     if not student:
         raise HTTPException(status_code=400, detail="Student not found")
@@ -51,8 +51,14 @@ def record_attendance(
     return record
 
 @router.get("/students/{student_id}", response_model=StudentAttendanceSummary)
-def get_student_attendance_summary(student_id: int, db: Session = Depends(get_db)):
+def get_student_attendance_summary(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     """Retrieve detailed attendance metrics and per-subject breakdown for a student."""
+    check_student_access_permission(student_id, current_user, db)
+    
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")

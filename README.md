@@ -1,6 +1,6 @@
 # 🎓 Student Management System (College Academic & Attendance Portal)
 
-A full-stack, production-grade **Student Management System** built with **Python, FastAPI, SQLAlchemy, SQLite/PostgreSQL, and Vanilla JavaScript (ES6)**. Designed to centralize student registration, academic performance tracking, CGPA calculation, attendance monitoring, interactive dashboard analytics, and official PDF report card generation.
+A full-stack **Student Management System** built with **Python, FastAPI, SQLAlchemy 2.x, SQLite, and Vanilla JavaScript (ES6)**. Designed to centralize student registration, academic performance tracking, CGPA calculation, attendance monitoring, interactive dashboard analytics, student self-service portal, role-based access control, and official PDF report card generation.
 
 ---
 
@@ -8,11 +8,11 @@ A full-stack, production-grade **Student Management System** built with **Python
 
 ### 1. 📋 Student Demographics & Management
 - **Complete Profile Tracking**: Roll Number/Student ID, Name, Date of Birth, Gender, Email, Phone, Address, Department, Course, Academic Year (1-4), Section (A/B/C).
-- **CRUD Operations**: Add, View, Filter, Search, Update, and Soft/Hard Delete student records.
+- **CRUD Operations**: Add, View, Filter, Search, Update, and Delete student records (Admin restricted for modifications).
 - **Strict Duplicate Validations**: Backend & Database unique constraints prevent duplicate Roll Numbers or Email addresses with clean `HTTP 400` validation responses.
 
-### 2. 📊 Academic Records & CGPA Calculator
-- **Marks Management**: Store internal (40 max) and external (70 max) exam marks per subject per semester.
+### 2. 📊 Academic Records & Consistent CGPA Calculator
+- **Standardized Marks Model**: Internal exam marks (Max 30) and external exam marks (Max 70) per subject per semester, adding up to a total of 100 marks per subject.
 - **Automated Grade & CGPA Engine**: Auto-computes Total Marks, Percentage, Letter Grade (`A+`, `A`, `B`, `C`, `D`, `F`), and 10-point Scale Grade Points (`10.0` - `0.0`).
 - **Semester Breakdown**: View semester-by-semester transcript performance and cumulative pass/fail status.
 
@@ -21,18 +21,28 @@ A full-stack, production-grade **Student Management System** built with **Python
 - **Subject-Wise Analytics**: Compute subject-wise attendance percentages and overall compliance rates.
 - **Low Attendance Warnings**: Automated visual alerts for students falling below the mandatory **75% threshold**.
 
-### 4. 📈 Interactive Analytics Dashboard
+### 4. 👤 Dedicated Student Self-Service Portal
+- **Student Dashboard**: Dedicated view for student users displaying personal profile, semester GPAs, overall CGPA, subject marks, and attendance breakdown.
+- **Self-Access Isolation**: Enforces backend privacy checks ensuring student users can only access their own profile, marks, attendance, and transcript PDF.
+- **Attendance Shortage Banner**: Prominent visual warning alert if a student's attendance drops below 75%.
+
+### 5. 🔑 Real Role-Based Access Control (RBAC) & Endpoint Security
+- **Admin**: Full permissions across Students, Departments, Subjects, Marks, Attendance, Reports, and Dashboard.
+- **Faculty**: Manage Marks & Attendance, view Students, Departments, Subjects, Reports, and Dashboard stats.
+- **Student**: View only their own profile, marks, CGPA, attendance, and transcript PDF.
+- **JWT Authentication & Environment Security**: Password salt hashing via `bcrypt`, Bearer JWT access tokens, dynamic `CORS_ORIGINS` configuration, and environment variable support (`.env`).
+
+### 6. 📈 Interactive Analytics Dashboard
 - **Live Metric Cards**: Total registered students, average college CGPA, overall attendance rate, and active departments count.
-- **Interactive Charts (Chart.js)**: Doughnut chart for department distribution and bar chart for academic year breakdown.
+- **Interactive Charts (Chart.js)**:
+  - Department distribution (doughnut chart)
+  - Academic year breakdown (bar chart)
+  - Semester GPA trend (line chart)
+  - Subject attendance percentage (bar chart)
 - **Top Performers Leaderboard**: Displays top 5 highest-ranking students sorted by CGPA.
 
-### 5. 📑 PDF Report Card Generator
+### 7. 📑 PDF Report Card Generator
 - **Server-Side PDF Generation**: Built with **ReportLab** to generate official, downloadable academic transcripts with college headers, grade summaries, attendance breakdowns, and verification signature fields.
-
-### 6. 🔐 JWT Authentication & Security
-- **Secure Password Hashing**: Utilizes `bcrypt` salt hashing.
-- **Bearer Token Auth**: Protects administrative endpoints with JSON Web Tokens (JWT).
-- **One-Click Demo Fill**: Clickable login shortcut for instant recruiter testing.
 
 ---
 
@@ -40,7 +50,7 @@ A full-stack, production-grade **Student Management System** built with **Python
 
 - **Backend**: Python 3.14+, FastAPI, Pydantic V2, SQLAlchemy 2.0 ORM, PyJWT, Bcrypt, ReportLab
 - **Database**: SQLite (Default zero-config), compatible with PostgreSQL / MySQL via SQLAlchemy
-- **Frontend**: HTML5, CSS3 Glassmorphism UI Design System, JavaScript (ES6 Modules/Fetch API), Chart.js, FontAwesome
+- **Frontend**: HTML5, Vanilla CSS Glassmorphism UI System, JavaScript (ES6 Fetch API), Chart.js, FontAwesome
 - **Testing**: Pytest, HTTPX TestClient
 
 ---
@@ -121,23 +131,51 @@ erDiagram
 
 ---
 
-## 🔌 REST API Endpoints
+## 🔌 REST API Endpoints & Role Permissions
 
-| Category | Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- | :---: |
-| **Auth** | `POST` | `/api/v1/auth/login` | Authenticate user & obtain JWT token | ❌ |
-| **Auth** | `GET` | `/api/v1/auth/me` | Fetch authenticated user profile | ✅ |
-| **Students** | `GET` | `/api/v1/students` | List students (filters: `department_id`, `year`, `search`) | ❌ |
-| **Students** | `POST` | `/api/v1/students` | Register new student with roll/email validation | ✅ |
-| **Students** | `GET` | `/api/v1/students/{id}` | Get full profile + CGPA & attendance stats | ❌ |
-| **Students** | `PUT` | `/api/v1/students/{id}` | Update student information | ✅ |
-| **Students** | `DELETE` | `/api/v1/students/{id}` | Delete student record | ✅ |
-| **Academics** | `POST` | `/api/v1/marks` | Record subject marks (auto-computes grade/GP) | ✅ |
-| **Academics** | `GET` | `/api/v1/marks/students/{id}` | Retrieve all subject marks for student | ❌ |
-| **Attendance** | `POST` | `/api/v1/attendance` | Log daily subject attendance | ✅ |
-| **Attendance** | `GET` | `/api/v1/attendance/students/{id}` | Get subject-wise attendance breakdown | ❌ |
-| **Dashboard**| `GET` | `/api/v1/dashboard/stats` | Retrieve aggregate KPIs, charts, top performers | ❌ |
-| **Reports** | `GET` | `/api/v1/reports/students/{id}/pdf` | Download official ReportLab PDF report card | ❌ |
+| Category | Method | Endpoint | Description | Auth Required | Allowed Roles |
+| :--- | :--- | :--- | :--- | :---: | :---: |
+| **Auth** | `POST` | `/api/v1/auth/login` | Authenticate user & obtain JWT token | ❌ | All |
+| **Auth** | `POST` | `/api/v1/auth/register` | Register new user account | ❌ | All |
+| **Auth** | `GET` | `/api/v1/auth/me` | Fetch authenticated user profile | ✅ | Admin, Faculty, Student |
+| **Students** | `GET` | `/api/v1/students` | List students with filters | ✅ | Admin, Faculty |
+| **Students** | `POST` | `/api/v1/students` | Create student record | ✅ | Admin |
+| **Students** | `GET` | `/api/v1/students/me/profile` | Get current logged-in student profile | ✅ | Student |
+| **Students** | `GET` | `/api/v1/students/{id}` | Get student profile details | ✅ | Admin, Faculty, Student (Self) |
+| **Students** | `PUT` | `/api/v1/students/{id}` | Update student record | ✅ | Admin |
+| **Students** | `DELETE` | `/api/v1/students/{id}` | Delete student record | ✅ | Admin |
+| **Departments**| `GET` | `/api/v1/departments` | List departments | ✅ | Admin, Faculty, Student |
+| **Departments**| `POST` | `/api/v1/departments` | Create department | ✅ | Admin |
+| **Subjects** | `GET` | `/api/v1/subjects` | List subjects | ✅ | Admin, Faculty, Student |
+| **Subjects** | `POST` | `/api/v1/subjects` | Create subject | ✅ | Admin |
+| **Academics** | `POST` | `/api/v1/marks` | Record or update marks | ✅ | Admin, Faculty |
+| **Academics** | `GET` | `/api/v1/marks/students/{id}` | Retrieve student marks | ✅ | Admin, Faculty, Student (Self) |
+| **Attendance** | `POST` | `/api/v1/attendance` | Log daily subject attendance | ✅ | Admin, Faculty |
+| **Attendance** | `GET` | `/api/v1/attendance/students/{id}` | Get attendance breakdown | ✅ | Admin, Faculty, Student (Self) |
+| **Dashboard**| `GET` | `/api/v1/dashboard/stats` | Retrieve aggregate KPIs & charts | ✅ | Admin, Faculty |
+| **Reports** | `GET` | `/api/v1/reports/students/{id}/pdf` | Download official PDF transcript | ✅ | Admin, Faculty, Student (Self) |
+
+---
+
+## ⚙️ Environment Variables Configuration
+
+Create a `.env` file in the root directory (based on `.env.example`):
+
+```env
+PROJECT_NAME="Student Management System"
+SECRET_KEY="college-secret-key-super-secure-change-in-production"
+ALGORITHM="HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+# Database Configuration
+DATABASE_URL="sqlite:///./student_management.db"
+
+# Attendance Threshold
+MIN_ATTENDANCE_PERCENTAGE=75.0
+
+# Security & CORS Settings
+CORS_ORIGINS="http://localhost,http://127.0.0.1,http://localhost:8000,http://127.0.0.1:8000,http://localhost:8050,http://127.0.0.1:8050"
+```
 
 ---
 
@@ -151,29 +189,30 @@ StudentManagementSystem/
 │   │   ├── core/           # Config, database engine, security JWT handlers
 │   │   ├── models/         # SQLAlchemy ORM models (User, Student, Department, Subject, Mark, Attendance)
 │   │   ├── schemas/        # Pydantic V2 validation schemas
-│   │   ├── routes/         # REST API route handlers
-│   │   └── services/       # Academic calculation service & ReportLab PDF generator
-│   ├── seed.py             # Realistic college data seeder script
-│   └── main.py             # FastAPI entrypoint & static frontend server
+│   │   ├── routes/         # REST API route handlers (Auth, Students, Departments, Subjects, Marks, Attendance, Dashboard, Reports)
+│   │   └── services/       # Academic calculation engine & ReportLab PDF generator
+│   ├── seed.py             # Database schema seeder script
+│   └── main.py             # FastAPI entrypoint & static web server
 │
 ├── frontend/
 │   ├── css/
-│   │   └── styles.css      # Glassmorphic slate CSS design system
+│   │   └── styles.css      # Glassmorphic UI CSS styling system
 │   ├── js/
-│   │   └── app.js          # SPA state management, Chart.js analytics & API caller
-│   └── index.html          # Interactive Single-Page Application (SPA)
+│   │   └── app.js          # SPA state management, Chart.js analytics & API integration
+│   └── index.html          # Single-Page Application (SPA) dashboard
 │
-├── tests/                  # Pytest unit tests suite
+├── tests/                  # Automated Pytest suite
 │   ├── test_auth.py
 │   ├── test_students.py
 │   ├── test_academics.py
-│   └── test_attendance.py
+│   ├── test_attendance.py
+│   └── test_roles.py       # RBAC, privacy isolation, input validation, and PDF tests
 │
-├── requirements.txt        # Backend dependencies
-├── .env.example            # Environment configuration template
-├── .gitignore              # Git ignore rules
-├── run.py                  # One-click zero-config local launcher
-└── README.md               # Project documentation
+├── .env                    # Active environment variables file
+├── .env.example            # Environment template
+├── requirements.txt        # Backend python dependencies
+├── run.py                  # Zero-config local application launcher
+└── README.md               # System documentation
 ```
 
 ---
@@ -197,49 +236,27 @@ Execute the one-click launcher script:
 python run.py
 ```
 
-The script will automatically initialize the database, seed realistic college data, and boot the server at:
+The script automatically initializes the database schema, seeds realistic sample data, and launches the server:
 - **Web Portal**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 - **Interactive API Docs (Swagger UI)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **ReDoc Documentation**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
-### 4. Demo Login Credentials
-- **Email**: `admin@college.edu`
-- **Password**: `admin123`
+### 4. Demo Accounts
+- **Admin**: Email `admin@college.edu` | Password `admin123`
+- **Faculty**: Email `faculty@college.edu` | Password `faculty123`
+- **Student**: Email `aarav.sharma@college.edu` | Password `student123`
 
 ---
 
-## 🧪 Running Automated Unit Tests
+## 🧪 Automated Testing
 
-Execute `pytest` to run the test suite covering authentication, student validation, CGPA calculations, and attendance tracking:
+Run the complete Pytest suite covering authentication, role authorization, student self-access privacy, marks calculation, attendance validation, PDF report generation, and dashboard statistics:
+
 ```bash
-python -m pytest tests/ -v
+python -m pytest -v
 ```
 
----
-
-## 🚀 GitHub & Deployment Guide
-
-### Push to GitHub
-```bash
-git init
-git add .
-git commit -m "Initial commit: Complete Student Management System"
-git branch -M main
-git remote add origin https://github.com/your-username/StudentManagementSystem.git
-git push -u origin main
-```
-
-### Deploying to Render / Railway / Heroku
-1. Set the Start Command: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-2. Set Environment Variables:
-   - `DATABASE_URL`: Your PostgreSQL / MySQL connection string
-   - `SECRET_KEY`: A strong secure secret key string
-
----
-
-## 💼 Resume Bullet Points
-
-- **Full-Stack Student Management System**: Designed and implemented a modular Student Management System using **FastAPI, SQLAlchemy, and JavaScript**, managing student demographics, academic marks, and attendance records for 5+ college departments.
-- **RESTful Architecture & Validation Engine**: Engineered 13+ RESTful API endpoints with Pydantic V2 request validation, handling duplicate Roll Number and Email constraints with custom exception handling and HTTP status codes.
-- **Automated CGPA & Report Card Generation**: Developed an academic service computing 10-point scale CGPA and letter grades, integrated with **ReportLab** for dynamic, server-side PDF transcript downloading.
-- **Interactive Glassmorphic Analytics Dashboard**: Built a responsive Single-Page Application (SPA) dashboard utilizing **Chart.js** for real-time visualization of department metrics, grade distributions, and automated 75% attendance shortage alerts.
+### Test Suite Results:
+- **Total Test Cases**: `31`
+- **Passed**: `31 / 31` (100% Pass Rate)
+- **Test Modules**: `test_auth.py`, `test_students.py`, `test_academics.py`, `test_attendance.py`, `test_roles.py`

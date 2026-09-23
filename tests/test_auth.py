@@ -30,17 +30,34 @@ def test_login_invalid_password():
     assert response.status_code == 401
     assert "Invalid email address or password" in response.json()["detail"]
 
-def test_get_current_user_profile():
-    # First login
-    login_res = client.post(
-        "/api/v1/auth/login",
-        json={"email": "admin@college.edu", "password": "admin123"}
-    )
-    token = login_res.json()["access_token"]
+def test_register_new_admin_success():
+    reg_payload = {
+        "full_name": "Dr. Sarah Connor",
+        "email": "sarah.connor@college.edu",
+        "password": "securepassword123",
+        "role": "admin"
+    }
+    response = client.post("/api/v1/auth/register", json=reg_payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["email"] == "sarah.connor@college.edu"
+    assert data["full_name"] == "Dr. Sarah Connor"
 
-    response = client.get(
-        "/api/v1/auth/me",
-        headers={"Authorization": f"Bearer {token}"}
-    )
-    assert response.status_code == 200
-    assert response.json()["email"] == "admin@college.edu"
+    # Verify logging in with newly registered account
+    login_res = client.post("/api/v1/auth/login", json={
+        "email": "sarah.connor@college.edu",
+        "password": "securepassword123"
+    })
+    assert login_res.status_code == 200
+    assert "access_token" in login_res.json()
+
+def test_register_duplicate_email():
+    reg_payload = {
+        "full_name": "Duplicate Admin",
+        "email": "admin@college.edu",
+        "password": "password123",
+        "role": "admin"
+    }
+    response = client.post("/api/v1/auth/register", json=reg_payload)
+    assert response.status_code == 400
+    assert "User with this email already exists" in response.json()["detail"]

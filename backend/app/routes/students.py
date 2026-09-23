@@ -6,7 +6,7 @@ from backend.app.models.student import Student
 from backend.app.models.department import Department
 from backend.app.schemas.student import StudentCreate, StudentUpdate, StudentOut, StudentDetailOut
 from backend.app.services.academic_service import compute_student_academic_summary
-from backend.app.routes.auth import get_current_user
+from backend.app.routes.auth import get_current_user, require_admin, require_faculty_or_admin, check_student_access_permission
 
 router = APIRouter(prefix="/api/v1/students", tags=["Students"])
 
@@ -16,7 +16,8 @@ def list_students(
     year: Optional[int] = Query(None),
     section: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
 ):
     """Retrieve students with department, year, section, and search text filtering."""
     query = db.query(Student)
@@ -37,13 +38,15 @@ def list_students(
         
     return query.order_by(Student.roll_number.asc()).all()
 
+from backend.app.models.user import User
+
 @router.post("", response_model=StudentOut, status_code=status.HTTP_201_CREATED)
 def create_student(
     student_in: StudentCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_admin)
 ):
-    """Create a new student with roll number and email uniqueness validations."""
+    """Create a new student with roll number, email, and phone uniqueness validations (Admin only)."""
     dept = db.query(Department).filter(Department.id == student_in.department_id).first()
     if not dept:
         raise HTTPException(
@@ -67,13 +70,21 @@ def create_student(
             detail=f"Student with Email '{student_in.email}' already exists."
         )
 
+    # Check duplicate Phone
+    existing_phone = db.query(Student).filter(Student.phone == student_in.phone.strip()).first()
+    if existing_phone:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Student with Phone Number '{student_in.phone}' already exists."
+        )
+
     student = Student(
         roll_number=student_in.roll_number.upper(),
         name=student_in.name,
         dob=student_in.dob,
         gender=student_in.gender,
         email=student_in.email.lower(),
-        phone=student_in.phone,
+        phone=student_in.phone.strip(),
         address=student_in.address,
         department_id=student_in.department_id,
         course=student_in.course,
@@ -86,9 +97,26 @@ def create_student(
     db.refresh(student)
     return student
 
+@router.get("/me/profile", response_model=StudentDetailOut)
+def get_my_student_profile(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """Get student profile and academic stats for currently authenticated student user."""
+    student = db.query(Student).filter(Student.email == current_user.email.lower()).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found for current user")
+    return get_student_profile(student.id, db=db, current_user=current_user)
+
 @router.get("/{student_id}", response_model=StudentDetailOut)
-def get_student_profile(student_id: int, db: Session = Depends(get_db)):
+def get_student_profile(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
     """Get comprehensive student profile including academic summary and attendance stats."""
+    check_student_access_permission(student_id, current_user, db)
+    
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -133,27 +161,59 @@ def update_student(
     student_id: int,
     student_in: StudentUpdate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_admin)
 ):
-    """Update student information."""
+    """Update student information (Admin only)."""
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
+    old_email = student.email
+
+    # Check Roll Number uniqueness if changing
+    if student_in.roll_number and student_in.roll_number.upper() != student.roll_number:
+        existing_roll = db.query(Student).filter(
+            Student.roll_number == student_in.roll_number.upper(),
+            Student.id != student_id
+        ).first()
+        if existing_roll:
+            raise HTTPException(status_code=400, detail=f"Roll Number '{student_in.roll_number}' is already in use")
+        student.roll_number = student_in.roll_number.upper()
+
+    # Check Email uniqueness if changing
     if student_in.email and student_in.email.lower() != student.email:
-        existing = db.query(Student).filter(Student.email == student_in.email.lower()).first()
-        if existing:
+        existing_email = db.query(Student).filter(
+            Student.email == student_in.email.lower(),
+            Student.id != student_id
+        ).first()
+        if existing_email:
             raise HTTPException(status_code=400, detail=f"Email '{student_in.email}' is already in use")
         student.email = student_in.email.lower()
+        
+        user_acct = db.query(User).filter(User.email == old_email).first()
+        if user_acct:
+            user_acct.email = student.email
+
+    # Check Phone Number uniqueness if changing
+    if student_in.phone and student_in.phone.strip() != student.phone:
+        existing_phone = db.query(Student).filter(
+            Student.phone == student_in.phone.strip(),
+            Student.id != student_id
+        ).first()
+        if existing_phone:
+            raise HTTPException(status_code=400, detail=f"Phone Number '{student_in.phone}' is already in use")
+        student.phone = student_in.phone.strip()
 
     if student_in.name:
         student.name = student_in.name
+        user_acct = db.query(User).filter(User.email == student.email).first()
+        if user_acct:
+            user_acct.full_name = student.name
+
     if student_in.dob:
         student.dob = student_in.dob
     if student_in.gender:
         student.gender = student_in.gender
-    if student_in.phone:
-        student.phone = student_in.phone
     if student_in.address is not None:
         student.address = student_in.address
     if student_in.department_id:
@@ -178,9 +238,9 @@ def update_student(
 def delete_student(
     student_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(require_admin)
 ):
-    """Delete student and all associated records."""
+    """Delete student and all associated records (Admin only)."""
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")

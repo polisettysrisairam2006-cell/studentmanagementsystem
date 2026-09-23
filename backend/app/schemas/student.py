@@ -21,6 +21,7 @@ class StudentCreate(StudentBase):
     pass
 
 class StudentUpdate(BaseModel):
+    roll_number: Optional[str] = None
     name: Optional[str] = None
     dob: Optional[date] = None
     gender: Optional[str] = None
